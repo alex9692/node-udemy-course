@@ -1,0 +1,148 @@
+data modelling is the process of taking unstructured data from a real world scenario and then structure it into a logical data model in the database according to some criteria.
+
+the four steps of structuring the data:
+    1.figuring out the different types of relationships between data.
+    2.understanding whether to use referencing/normalization or embedding/denormalization.
+    3.understanding different types of referencing.
+
+TYPES OF RELATIONSHIP BETWEEN DATA:
+------------------------------------------------
+different types of relationships that can exist between data
+    1.one to one
+    2.one to many
+    3. many to many
+
+one to one relationship:
+    it means one field can only have one value. for example one movie can only have one name.
+
+one to many relationship:
+    it means that one document can relate to many other documents.
+    there are three types of one to many relationships:
+        1. one to few(may be less than 100) for eg. a movie can win many awards (maybe 5-10).
+        2.one to many(maybe 100 or 1000) for eg. a movie can have thousands of reviews.
+        3.one to ton(maybe millions) for eg. log files generated on server about what is going on.
+
+    in relational there is only one to many but it doesn't quantify how much that many is.but in mongodb it is an important factor to decide whether to normalize or denormalize data.
+
+many to many relationship:
+    for eg one movie can have many actors and one actor can play in many movies.relationship can go in both directions.
+
+
+REFERENCING vs. EMBEDDING:
+----------------------------------
+the datasets can be represent in normalized and denormalized form.
+
+in normalized form we keep the two related datasets in the database separated.all the datasets are in separate documents.as the datasets are separated, we use ids of the child document in the parent documents for referencing effectively connecting the datasets.we use arrays to store the ids of the of the child document and this type of referencing is caleed child referencing.
+in relational database the datasets are always normalized but in nosql we can denormalize the datasets simply by embedding the related documents in the main document.hence no need for separate documents,collections and ids.
+the advantage of embedding is that we have to make fewer queries to the database as it provides all the related data and main data at the same time.but its downside is that we cannot query the related datasets on its own.
+the advantage of referencing is that we can easily query the related datasets on its own but its downside is that we have to make more queries for main datasets to the database.
+
+3.WHEN TO USE EMBEDDING/REFERENCING:
+-------------------------------------------------
+3 criteria which determine whether to use embedding or referencing:
+    1. the relationship between datasets.
+    2. data access patterns of the embedding/referencing document.(how often the data is read/write)
+    3.how much the datasets are closely related with each other and how we want to query the datasets.
+we should take into account all of the above criteria.
+
+first criteria:
+---------------
+if its a one to few relationship we embed the related datasets into the main dataset.
+if its one to many we should then proceed to the other two remaining criteria to decide.
+if its one to ton or many to many relationship we always reference the data because if we embed the document we may easily surpass the limit size of 16MB 
+for eg in our movie dataset we have about 100 images so it is a one to many relationship.we dont really know whether to embed or reference the dataset so we proceed to next step.
+
+second criteria:
+----------------
+if the related dataset is mostly read from and the data is not updated a lot, then we should we definetly embed the dataset(High read/write ratio).
+if the related dataset is updated a lot then we should normalize the data(High write/read ratio).thats because it more work for database engine to update and embed a document than to only update a standalone document.
+
+third criteria:
+---------------
+if the dataset intrinsically belong to one another, then they should be embedded.
+if the dataset are frequenlty queried on their own, then we need to normalize the datasets even if they are closely related.
+
+4.TYPES OF REFERENCING:
+-----------------------------
+there are three types of referencing:
+    1.child referencing
+    2.parent referencing.
+    3.two-way referencing.
+
+in child referencing we basically keep reference(ids) of child document in parent document and stored in an array.the problem here is that the parent document can grow very large if there are tons of child document so we should take into consideration whether to use this method, also it makes the parent and children very tightly coupled.
+so to avoid those we use parent referencing. 
+in parent referencing we store the id of parent document in every child documents.
+in conclusion, if there are millions of child documents in case, then we shouldn't use child referencing as it will hit the 16MB limit pretty quickly that each BSON document can hold.Hence it is best used in one to few relationships.However in parent referencing, the child documents are standalone holding the id of parent document and there are no cases of documents hitting the 16MB limit, so parent referencing is the best solution.They are mostly used in one to many or one to ton relationships.
+one of most important principles of data modelling is that an array should never be allowed to grow indefinetly.
+
+two-way referencing is mostly used in case of many to many relationships.
+here both datasets are parent and child to one another and uses array to store ids.
+
+SUMMARY:
+-----------
+structure the data to match in ways that your application queries and updates data.
+identify the questions from the application use cases first, then try to model the data so they are answered in most efficient way.
+always favour embedding, unless there is a good reason not to embed especially on one to few and one to many.
+always use referencing when working with one to ton or many to many relationships
+always favour referencing when data is updated a lot or it requires quering on its own.
+use embedding when data is always read or fairly updated and also when they are intrinsically close to each other.
+dont allow array to grow indefinetly, so use child referencing when using one to few and parent referencing when using one to many and one to ton relationships.
+use two-way referencing for many to many relationships.
+
+
+documents: users,reviews,tours,bookings
+embedded: locations
+
+parent                              child                                embed
+users    ->     reviews(1-many), bookings(1-many),          none
+                
+tours    ->     users(1-few), bookings(1-many),           locations(few-few)
+                   reviews(1-many)
+
+
+
+
+INDEXES:
+----------
+we cna get statistics of any query by attaching '.explain()' property to it.
+by using indexes we eliminate the need of additional examining of the documents in database which dont meet the query conditions.
+this is done by creating indexes on specific fields(likely to be queried) in a collection._id is automatically indexed by the mongodb.these indexes are ordered list stored somewhere outside of the collection.whenever documents are queried by id mongodb will search through the ordered index instead of searching through the whole collection(hence it eliminates the process of looking the documents one by one).
+the fields with unique property are automatically indexed.
+there are two types of indexing in practice:
+    1.single index: only single query field is indexed
+    2.compound index: one or more than one query fields are indexed(also works when only one field                              is queried among the indexed queries).
+the size of the indexes is more than the total size of all the documents combined in the collection.Therefore, it is advisable to set indexes on fields which are queried more frequenlty.
+the indexes are also updated each time the underlying collection is updated.so, if a collection has high write/read ratio(means update more frequenlty) then it makes no sense to index any field in that collection because the cost of always updating the index outweighs the benefit of having the index in the first place if we rarely have searches/qureies for that collection.so in summary we should keep in mind the frequency of queries, the read/write patterns of the resource, maintaining the index.
+
+security:
+case 1:compromised database
+            always encrypt passwords,reset-tokens 
+case 2:brute force attacks
+            use bcrypt as it slows down the request-response cycle to complete.
+            implementing rate limiting(limits no of requests from a given ip).
+            max login attempts(make the user wait for some time after a no of login attempt).
+case 3:xss attack
+            store jwt tokens only in cookies.
+            sanitize user input data.
+            set some http security headers.
+case 4:denial of service(dos) attack(when attacker sents so many requests to a server that it breaks down and the app becomes unavailable).
+            implementing rate limiting(limits no of requests from a given ip).
+            should limit amount of data sent in post/patch request.
+            avoid evil regex.
+case 5:nosql query injection(attacker can can access resource by injecting certain query expression )
+            sanitize user input data.
+
+best practices for good security:
+    always use https.
+    create random tokens for password reset with expiry dates.
+    make the token ineffective after password change.
+    dont commit secret data to git.
+    dont send error details to client.
+    prevent cross-site request forgery(forces user unwanted action in a web app).
+    require re-authenticate after performing a high value action.
+    implement a blacklist of untrusted token.
+    verify an email address after an account is first created.
+    keep user loggedin with refresh tokens.
+    implement two-factor authentication.
+    prevent parameter pollution causing uncaught exeception.
+            
