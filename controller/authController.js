@@ -54,12 +54,9 @@ exports.login = catchAsync(async (req, res, next) => {
 		expires: new Date(
 			Date.now() + process.env.COOKIE_EXPIRES_IN * 60 * 60 * 1000
 		),
-		httpOnly: true
+		httpOnly: true,
+		secure: req.secure || req.headers["x-forwarded-proto"] === "https"
 	};
-
-	if (process.env.NODE_ENV === "production") {
-		cookieOptions.secure = true;
-	}
 
 	res.cookie("jwt", token, cookieOptions);
 
@@ -222,12 +219,9 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 		expires: new Date(
 			Date.now() + process.env.COOKIE_EXPIRES_IN * 60 * 60 * 1000
 		),
-		httpOnly: true
+		httpOnly: true,
+		secure: req.secure || req.headers["x-forwarded-proto"] === "https"
 	};
-
-	if (process.env.NODE_ENV === "production") {
-		cookieOptions.secure = true;
-	}
 
 	res.cookie("jwt", token, cookieOptions);
 

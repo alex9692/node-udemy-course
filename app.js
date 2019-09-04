@@ -23,6 +23,7 @@ const errorController = require("./controller/errorController");
 
 const app = express();
 
+app.enable("trust proxy");
 app.use(cors());
 app.set("view engine", "pug");
 app.set("views", path.join(__dirname, "views"));
