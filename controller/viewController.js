@@ -62,16 +62,16 @@ exports.getMyTours = catchAsync(async (req, res, next) => {
 
 	const tours = await Tour.find({ _id: { $in: tourIds } });
 
-	// res.status(200).render("overview", {
-	// 	tours,
-	// 	title: "My Tours"
-	// });
+	res.status(200).render("overview", {
+		tours,
+		title: "My Tours"
+	});
 
 	// const bookings = await Booking.find({ user: req.user.id }).populate({
 	// 	path: "tours_virtual"
 	// });
 	// const tours = bookings.map(booking => booking.tours_virtual);
-	res.status(200).json({
-		tours
-	});
+	// res.status(200).json({
+	// 	tours
+	// });
 });
