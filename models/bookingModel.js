@@ -41,9 +41,7 @@ bookingSchema.virtual("tours_virtual", {
 
 bookingSchema.pre("save", async function(next) {
 	if (this.isModified("price")) {
-		console.log(this.price);
 		const tour = await Tour.findById(this.tour._id);
-		console.log(tour);
 		tour.price = this.price;
 		await tour.save({ validateBeforeSave: false });
 		return next();

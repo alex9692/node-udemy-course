@@ -4,7 +4,7 @@ import { showAlert } from "./alert";
 export const updateUserData = async data => {
 	try {
 		const response = await axios.patch(
-			"http://localhost:8000/api/v1/users/updateMe",
+			"/api/v1/users/updateMe",
 			data
 		);
 
@@ -25,7 +25,7 @@ export const updateUserPassword = async (
 ) => {
 	try {
 		const response = await axios.patch(
-			"http://localhost:8000/api/v1/users/updateMyPassword",
+			"/api/v1/users/updateMyPassword",
 			{ currentPassword, newPassword, confirmNewPassword }
 		);
 

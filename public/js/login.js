@@ -5,13 +5,12 @@ import { showAlert } from "./alert";
 export const login = async (email, password) => {
 	try {
 		const response = await axios.post(
-			"http://localhost:8000/api/v1/users/login",
+			"/api/v1/users/login",
 			{
 				email,
 				password
 			}
 		);
-		console.log(response);
 		if (response.data.status === "success") {
 			showAlert("success", "logged in successfully!");
 			window.setTimeout(() => {
@@ -26,7 +25,7 @@ export const login = async (email, password) => {
 export const logout = async () => {
 	try {
 		const response = await axios.get(
-			"http://localhost:8000/api/v1/users/logout"
+			"/api/v1/users/logout"
 		);
 
 		if (response.data.status === "success") {

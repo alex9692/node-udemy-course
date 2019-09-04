@@ -32,7 +32,6 @@ exports.test = async (req, res, next) => {
 exports.checkBookedTour = catchAsync(async (req, res, next) => {
 	const { tour, user } = req.body;
 	const booking = await Booking.find({ user, tour });
-	console.log(booking);
 
 	if (booking.length === 0) {
 		return next(new AppError("Please book the tour before reviewing", 400));
