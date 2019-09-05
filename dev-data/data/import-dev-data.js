@@ -24,15 +24,11 @@ mongoose
 		console.log("Database connected successfully!");
 	});
 
-const tours = JSON.parse(
-	fs.readFileSync(`${__dirname}/tours.json`, "utf-8")
-);
+const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, "utf-8"));
 const reviews = JSON.parse(
 	fs.readFileSync(`${__dirname}/reviews.json`, "utf-8")
 );
-const users = JSON.parse(
-	fs.readFileSync(`${__dirname}/users.json`, "utf-8")
-);
+const users = JSON.parse(fs.readFileSync(`${__dirname}/users.json`, "utf-8"));
 
 const importData = async () => {
 	try {
@@ -58,8 +54,34 @@ const deleteData = async () => {
 	process.exit();
 };
 
+const updateTourData = async () => {
+	try {
+		let tours = await Tour.find();
+		await Promise.all(
+			tours.map(async tour => {
+				tour.bookDates = tour.startDates.map(startDate => {
+					return {
+						startDate,
+						participants: 0,
+						soldout: false
+					};
+				});
+
+				await tour.save({ validateBeforeSave: false });
+			})
+		);
+
+		console.log("Data succesfully updated");
+	} catch (err) {
+		console.log(err);
+	}
+	process.exit();
+};
+
 if (process.argv[2] === "--import") {
 	importData();
 } else if (process.argv[2] === "--delete") {
 	deleteData();
+} else if (process.argv[2] === "--update") {
+	updateTourData();
 }

@@ -105,6 +105,13 @@ const tourSchema = new mongoose.Schema(
 				type: mongoose.Schema.ObjectId,
 				ref: "User"
 			}
+		],
+		bookDates: [
+			{
+				startDate: Date,
+				participants: Number,
+				soldout: Boolean
+			}
 		]
 	},
 	{

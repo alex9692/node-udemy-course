@@ -24,6 +24,13 @@ const bookingSchema = new mongoose.Schema(
 		paid: {
 			type: Boolean,
 			default: true
+		},
+		tourDate: {
+			type: Date,
+			required: [true, "Booking must have a tourDate"]
+		},
+		tourName: {
+			type: String
 		}
 	},
 	{
@@ -33,6 +40,8 @@ const bookingSchema = new mongoose.Schema(
 	}
 );
 
+bookingSchema.index({ tour: 1, user: 1 }, { unique: true });
+
 bookingSchema.virtual("tours_virtual", {
 	ref: "Tour",
 	foreignField: "_id",
@@ -40,13 +49,62 @@ bookingSchema.virtual("tours_virtual", {
 });
 
 bookingSchema.pre("save", async function(next) {
-	if (this.isModified("price")) {
+	if (!this.isNew) {
+		return next();
+	}
+	const tour = await Tour.findById(this.tour);
+	this.tourName = tour.slug;
+	next();
+});
+
+bookingSchema.pre("save", async function(next) {
+	if (this.isModified("price") && !this.isNew) {
 		const tour = await Tour.findById(this.tour._id);
 		tour.price = this.price;
 		await tour.save({ validateBeforeSave: false });
 		return next();
 	}
 	next();
+});
+
+bookingSchema.statics.calcNumBookings = async function(slug) {
+	const stats = await Booking.aggregate([
+		{
+			$match: { tourName: slug }
+		},
+		{
+			$group: {
+				_id: "$tourDate",
+				numOfBookings: { $sum: 1 }
+			}
+		},
+		{
+			$addFields: { startDate: "$_id" }
+		},
+		{
+			$project: { _id: 0 }
+		}
+	]);
+	const tour = await Tour.findOne({ slug });
+
+	const infoTour = tour.bookDates.map(info => {
+		stats.forEach(statInfo => {
+			if (
+				statInfo.startDate.toLocaleDateString("en-US") ===
+				info.startDate.toLocaleDateString("en-US")
+			) {
+				info.participants = statInfo.numOfBookings;
+				if (info.participants >= tour.maxGroupSize) info.soldout = true;
+			}
+		});
+		return info;
+	});
+	tour.bookDates = infoTour;
+	await tour.save({ validateBeforeSave: true });
+};
+
+bookingSchema.post("save", function(doc) {
+	this.constructor.calcNumBookings(doc.tourName);
 });
 
 bookingSchema.pre(/^find/, function(next) {

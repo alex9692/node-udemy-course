@@ -29,11 +29,22 @@ exports.updateOne = (Model, modelName) => {
 		if (modelName === "booking") {
 			const { tour, user, price } = req.body;
 			const doc = await Model.findById(id);
-			if (tour) doc.tour = tour;
-			if (user) doc.user = user;
-			if (price) doc.price = price;
+			// if (tour) doc.tour = tour;
+			// if (user) doc.user = user;
+			// if (price) doc.price = price;
+			// if (tourDate) doc.tourDate = tourDate;
+			for (let field in req.body) {
+				doc[field] = req.body[field];
+			}
 			await doc.save({ validateBeforeSave: false });
+			return res.status(200).json({
+				status: "success",
+				data: {
+					doc
+				}
+			});
 		}
+
 		const doc = await Model.findByIdAndUpdate(id, req.body, {
 			new: true,
 			runValidators: true

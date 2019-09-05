@@ -80,3 +80,72 @@ exports.webhookCheckout = (req, res, next) => {
 
 	res.status(200).json({ received: true });
 };
+
+exports.checkAvailability = catchAsync(async (req, res, next) => {
+	let { tourDate } = req.body;
+	const tourId = req.body.tour;
+
+	const tour = await Tour.findById(tourId);
+
+	tourDate = new Date(tourDate).toLocaleDateString("en-US");
+	const index = tour.startDates.findIndex(startDate => {
+		startDate = startDate.toLocaleDateString("en-US");
+		return startDate === tourDate;
+	});
+	if (index === -1) {
+		return next(
+			new AppError("Please book a tour on one of the specified dates", 400)
+		);
+	}
+	if (
+		tour.bookDates[index].participants >= tour.maxGroupSize ||
+		tour.bookDates[index].soldout === true
+	) {
+		return next(
+			new AppError(
+				"No slots available for any more user.Please try other tour start dates",
+				400
+			)
+		);
+	}
+	req.body.tourDate = tour.bookDates[index].startDate;
+	next();
+});
+
+exports.getBookInfo = catchAsync(async (req, res, next) => {
+	const { slug } = req.params;
+	const stats = await Booking.aggregate([
+		{
+			$match: { tourName: slug }
+		},
+		{
+			$group: {
+				_id: "$tourDate",
+				numOfBookings: { $sum: 1 }
+			}
+		},
+		{
+			$addFields: { startDate: "$_id" }
+		},
+		{
+			$project: { _id: 0 }
+		}
+	]);
+	const tour = await Tour.findOne({ slug });
+
+	const infoTour = tour.bookDates.map(info => {
+		stats.forEach(statInfo => {
+			if (
+				statInfo.startDate.toLocaleDateString("en-US") ===
+				info.startDate.toLocaleDateString("en-US")
+			) {
+				info.participants = statInfo.numOfBookings;
+				if (info.participants >= tour.maxGroupSize) info.soldout = true;
+			}
+		});
+		return info;
+	});
+	tour.bookDates = infoTour;
+	// await tour.save({ validateBeforeSave: true });
+	res.json({ tour });
+});

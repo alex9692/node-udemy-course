@@ -4,6 +4,8 @@ const router = express.Router({ mergeParams: true });
 const bookingCtrl = require("../controller/bookingController");
 const authCtrl = require("../controller/authController");
 
+router.get("/test/:slug", bookingCtrl.getBookInfo);
+
 router.use(authCtrl.protect);
 
 router.get(
@@ -17,7 +19,7 @@ router.use(authCtrl.restrictTo("admin", "lead-guide"));
 router
 	.route("/")
 	.get(bookingCtrl.getBookings)
-	.post(bookingCtrl.createBookings);
+	.post(bookingCtrl.checkAvailability, bookingCtrl.createBookings);
 
 router
 	.route("/:id")
