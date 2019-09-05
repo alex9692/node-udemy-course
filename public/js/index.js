@@ -4,6 +4,7 @@ import { logout } from "./login";
 import { displayMap } from "./mapbox";
 import { updateUserData, updateUserPassword } from "./udpateUser";
 import { bookTour } from "./stripe";
+import { showAlert } from "./alert";
 
 const mapbox = document.getElementById("map");
 const loginForm = document.querySelector(".form--login");
@@ -73,4 +74,9 @@ if (bookTourBtn) {
 		await bookTour(tourId);
 		e.target.textContent = "BOOK TOUR NOW!";
 	});
+}
+
+const alertMessage = document.querySelector("body").dataset.alert;
+if (alert) {
+	showAlert("success", alertMessage, 20);
 }

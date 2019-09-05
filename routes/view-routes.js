@@ -5,6 +5,8 @@ const viewController = require("../controller/viewController");
 const authController = require("../controller/authController");
 const bookingController = require("../controller/bookingController");
 
+router.use(viewController.alerts);
+
 router.get("/me", authController.protect, viewController.getUserAccount);
 // router.post("/submit-user-data", authController.protect, viewController.updateUserData);
 router.get("/my-tours", authController.protect, viewController.getMyTours);
