@@ -18,6 +18,7 @@ const reviewRouter = require("./routes/review-routes");
 const subsRouter = require("./routes/subs-routes");
 const viewRouter = require("./routes/view-routes");
 const bookingRouter = require("./routes/booking-routes");
+const bookingController = require("./controller/bookingController");
 
 const errorController = require("./controller/errorController");
 
@@ -25,11 +26,18 @@ const app = express();
 
 app.enable("trust proxy");
 app.use(cors());
+app.options("*", cors());
 app.set("view engine", "pug");
 app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(helmet());
+
+app.post(
+	"/webhook-checkout",
+	express.raw({ type: "application/json" }),
+	bookingController.webhookCheckout
+); //need the req.body in stream and not in json #imp
 
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
