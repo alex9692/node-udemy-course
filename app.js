@@ -1,11 +1,11 @@
 const express = require("express");
+const path = require("path");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const mongoSanitize = require("express-mongo-sanitize");
 const xssClean = require("xss-clean");
 const hpp = require("hpp");
-const path = require("path");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const compression = require("compression");
@@ -18,9 +18,9 @@ const reviewRouter = require("./routes/review-routes");
 const subsRouter = require("./routes/subs-routes");
 const viewRouter = require("./routes/view-routes");
 const bookingRouter = require("./routes/booking-routes");
-const bookingController = require("./controller/bookingController");
 
 const errorController = require("./controller/errorController");
+const bookingController = require("./controller/bookingController");
 
 const app = express();
 
@@ -63,13 +63,13 @@ if (process.env.NODE_ENV === "development") {
 	app.use(morgan("dev"));
 }
 
+app.use(compression());
+
 const limiter = rateLimit({
 	max: 100,
 	windowMs: 60 * 60 * 1000,
 	message: "Too many requests from this ip.Please try again after an hour"
 });
-
-app.use(compression());
 
 app.use("/api", limiter);
 

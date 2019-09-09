@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const slugify = require("slugify");
-const validator = require("validator");
 
 const tourSchema = new mongoose.Schema(
 	{
@@ -56,7 +55,7 @@ const tourSchema = new mongoose.Schema(
 		summary: {
 			type: String,
 			trim: true,
-			required: [true, "A tour must have a description"]
+			required: [true, "A tour must have a summary"]
 		},
 		description: {
 			type: String,

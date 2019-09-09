@@ -103,7 +103,7 @@ exports.checkAvailability = catchAsync(async (req, res, next) => {
 	) {
 		return next(
 			new AppError(
-				"No slots available for any more user.Please try other tour start dates",
+				"All slots are booked for this date.Please try another starting dates for this tour",
 				400
 			)
 		);
